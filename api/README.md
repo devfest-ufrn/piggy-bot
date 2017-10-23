@@ -10,7 +10,7 @@ $ apistar create_tables # Create necessaries tables in database
 ```
 #### Start Server 
 ```bash
-$ apistar run
+$ DIALOG_FLOW_ACCESS_TOKEN=<token_here> apistar run
 ```
 
 ### Endpoints
@@ -21,7 +21,7 @@ URL | Action
 /expenses | List all saved expenses 
 /docs | Shows the browseable API Documentation
 
-### Intents
+### PiggyBot DialogFlow Intents
 
 Intent | Description | Example of Input
 ------------ | ------------- | ---------
