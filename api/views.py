@@ -1,3 +1,4 @@
+import datetime
 import json
 from http import HTTPStatus
 
@@ -6,7 +7,7 @@ from apistar import http, Response
 from sqlalchemy.orm import Session
 
 from environment import env
-from models import Expense
+from models import Expense, PendingQuery
 from schema import ExpenseSchema
 
 ai = apiai.ApiAI(env['DIALOG_FLOW_ACCESS_TOKEN'])
@@ -28,8 +29,12 @@ def parse_message(session: Session, message: http.QueryParam):
     if response.status == HTTPStatus.UNAUTHORIZED or not env['DIALOG_FLOW_ACCESS_TOKEN']:
         return Response({'error': 'Unathorized'}, status=HTTPStatus.UNAUTHORIZED)
     elif response.status != HTTPStatus.OK:
-        return Response({'error': 'Something went wrong while trying to communicate with DialogFlow. '
-                                  'Maybe the ACCESS_TOKEN was not defined. STATUS=%s' % response.status})
+        pending = PendingQuery()
+        pending.message = message
+        pending.request_status = response.status
+        pending.request_date = datetime.datetime.now()
+        session.add(pending)
+        return Response({'error': 'Something went wrong while trying to communicate with DialogFlow. STATUS=%s' % response.status})
     else:
         json_response = json.loads(response.read().decode('utf-8'))
         if json_response['result']['metadata']['intentName'] == 'register_expense':
