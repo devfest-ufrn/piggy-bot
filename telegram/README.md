@@ -9,7 +9,7 @@ $ pip3 install -r requirements.txt # Install dependencies
 ```
 #### Start Server
 ```bash
-$ TELEGRAM_TOKEN=<token_here> python3 app.py
+$ TELEGRAM_TOKEN=<token_here> API_URL=<url_here> python3 app.py
 ```
 
 ### Actions
