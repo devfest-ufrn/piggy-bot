@@ -1,5 +1,6 @@
 import os
 import logging
+import requests
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
@@ -8,6 +9,14 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
+token = os.environ.get('TELEGRAM_TOKEN')
+if not token:
+    raise Exception('TELEGRAM_TOKEN is not defined in environment variables')
+
+api_url = os.environ.get('API_URL')
+if not api_url:
+    raise Exception('API_URL is not defined in environment variables')
 
 
 def start(bot, update):
@@ -21,8 +30,17 @@ def help(bot, update):
 
 
 def message(bot, update):
-    """Echo the user message."""
-    update.message.reply_text(update.message.text)
+    """Parses the user message and reply."""
+    r = requests.get(api_url + '/query', {'message': update.message.text})
+    response = r.json()
+    update.message.reply_text(response['content'])
+
+
+def balance(bot, update):
+    """Return current balance of the user."""
+    r = requests.get(api_url + '/balance')
+    response = r.json()
+    update.message.reply_text('Your balance is %s' % response['balance'])
 
 
 def error(bot, update, error):
@@ -31,13 +49,8 @@ def error(bot, update, error):
 
 
 def main():
-    token = os.environ['TELEGRAM_TOKEN']
 
-    if not token:
-        raise Exception('TELEGRAM_TOKEN not defined in environment variable')
-    else:
-        logger.info('Starting telegram bot with Token %s', token)
-
+    # Connects to telegram
     updater = Updater(token)
 
     # Get the dispatcher to register handlers
@@ -45,12 +58,16 @@ def main():
 
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("balance", balance))
     dp.add_handler(CommandHandler("help", help))
 
     dp.add_handler(MessageHandler(Filters.text, message))
 
     # log all errors
     dp.add_error_handler(error)
+
+    # Start the Bot
+    updater.start_polling()
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
