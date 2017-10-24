@@ -4,6 +4,7 @@ from http import HTTPStatus
 
 import apiai
 from apistar import http, Response
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from environment import env
@@ -11,6 +12,10 @@ from models import Expense, PendingQuery
 from schema import ExpenseSchema
 
 ai = apiai.ApiAI(env['DIALOG_FLOW_ACCESS_TOKEN'])
+
+
+def get_intent_name(dialog_flow_response):
+    return dialog_flow_response['result']['metadata']['intentName']
 
 
 def parse_message(session: Session, message: http.QueryParam):
@@ -35,12 +40,25 @@ def parse_message(session: Session, message: http.QueryParam):
         pending.request_date = datetime.datetime.now()
         session.add(pending)
         return Response({'error': 'Something went wrong while trying to communicate with DialogFlow. STATUS=%s' % response.status})
-    else:
-        json_response = json.loads(response.read().decode('utf-8'))
-        if json_response['result']['metadata']['intentName'] == 'register_expense':
-            register_expense(session, json_response)
 
-    return Response(json_response['result'], status=201)
+    dialog_flow_response = json.loads(response.read().decode('utf-8'))
+    intent = get_intent_name(dialog_flow_response)
+
+    if intent == 'register_expense':
+        expense = register_expense(session, dialog_flow_response)
+        return Response({'content': 'Expense of %0.2f registered' % expense.value}, status=HTTPStatus.OK)
+
+    return Response(dialog_flow_response['result'], status=HTTPStatus.OK)
+
+
+def retrieve_balance(session: Session):
+    """
+    Function responsible to return the current balance of the user
+    :param session:
+    :return:
+    """
+    balance = session.query(func.sum(Expense.value)).scalar()
+    return Response({'balance': balance}, status=HTTPStatus.OK)
 
 
 def list_expenses(session: Session):
@@ -62,8 +80,10 @@ def register_expense(session: Session, response):
     """
     expense = Expense()
     expense.message = response['result']['resolvedQuery']
-    expense.value = response['result']['parameters']['value']
+    expense.value = float(response['result']['parameters']['value'])
 
     session.add(expense)
     session.flush()
+
+    return expense
 
