@@ -8,7 +8,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from environment import env
-from models import Expense, PendingQuery
+from models import Expense, PendingQuery, User
 from schema import ExpenseSchema
 
 ai = apiai.ApiAI(env['DIALOG_FLOW_ACCESS_TOKEN'])
@@ -87,3 +87,26 @@ def register_expense(session: Session, response):
 
     return expense
 
+
+def list_users(session: Session, response):
+    """
+    Function responsible to list all the users
+    :param session:
+    :return:
+    """
+    # queryset = session.query(User).all()
+    # return [UserSchema(user) for user in queryset]
+    pass
+
+
+def create_user(session: Session, new_user: User):
+
+    user = User()
+    user.id = new_user.id
+    user.username = new_user.username
+    user.first_name = new_user.first_name
+
+    session.add(user)
+    session.flush()
+
+    return user
