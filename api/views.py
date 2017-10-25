@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from environment import env
 from models import Expense, PendingQuery, User
-from schema import ExpenseSchema
+from schema import ExpenseSchema, UserSchema
 
 ai = apiai.ApiAI(env['DIALOG_FLOW_ACCESS_TOKEN'])
 
@@ -94,19 +94,23 @@ def list_users(session: Session, response):
     :param session:
     :return:
     """
-    # queryset = session.query(User).all()
-    # return [UserSchema(user) for user in queryset]
-    pass
+    queryset = session.query(User).all()
+    return [UserSchema(user) for user in queryset]
 
 
-def create_user(session: Session, new_user: User):
+def create_user(session: Session, request: http.RequestData ):
+
+    data = request
 
     user = User()
-    user.id = new_user.id
-    user.username = new_user.username
-    user.first_name = new_user.first_name
+    user.id = int(data['id'])
+    user.username = data['username']
+    user.first_name = data['first_name']
 
     session.add(user)
     session.flush()
 
-    return user
+    return Response({ 'message': 'User added with success'})
+    # session.add(user)
+    # session.flush()
+    # return data['id']

@@ -7,3 +7,10 @@ class ExpenseSchema(typesystem.Object):
         'message': typesystem.String,
         'value': typesystem.Number,
     }
+
+class UserSchema(typesystem.Object):	
+	properties = {
+		'id': typesystem.Integer,
+		'username':typesystem.String,
+		'first_name': typesystem.String
+	}	
