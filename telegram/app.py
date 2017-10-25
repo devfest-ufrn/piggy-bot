@@ -21,7 +21,18 @@ if not api_url:
 
 def start(bot, update):
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
+    update.message.reply_text('Hi, ' + update.message.from_user.first_name + '!')
+    
+    payload = {
+        'id': update.message.from_user.id,
+        'username': update.message.from_user.username,
+        'first_name': update.message.from_user.first_name
+    }
+
+    r = requests.post(api_url + '/users/', data=payload)
+    response = r.json()
+
+    update.message.reply_text(response['message'])
 
 
 def help(bot, update):
