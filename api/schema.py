@@ -6,6 +6,7 @@ class ExpenseSchema(typesystem.Object):
         'id': typesystem.String,
         'message': typesystem.String,
         'value': typesystem.Number,
+        'user_id': typesystem.Number
     }
 
 class UserSchema(typesystem.Object):	

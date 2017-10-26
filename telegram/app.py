@@ -21,7 +21,7 @@ if not api_url:
 
 def start(bot, update):
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi, ' + update.message.from_user.first_name + '!')
+    update.message.reply_text('Hi!')
     
     payload = {
         'id': update.message.from_user.id,
@@ -29,10 +29,19 @@ def start(bot, update):
         'first_name': update.message.from_user.first_name
     }
 
-    r = requests.post(api_url + '/users/', data=payload)
-    response = r.json()
+    r = requests.get(api_url + '/users/' + str(payload['id']))
+    
+    if r.status_code == 404:
+        update.message.reply_text("Hummm... I don't know you")
+        update.message.reply_text('Just a minute, pls :)')
+        response = create_user(payload)
 
-    update.message.reply_text(response['message'])
+        update.message.reply_text(response)
+        return
+
+
+    msg = 'Yeeeaaah, i remember you. How can i help you, ' + update.message.from_user.first_name + '?'
+    update.message.reply_text(msg)
 
 
 def help(bot, update):
@@ -42,14 +51,25 @@ def help(bot, update):
 
 def message(bot, update):
     """Parses the user message and reply."""
-    r = requests.get(api_url + '/query', {'message': update.message.text})
+    user_id = update.message.from_user.id
+    query =  update.message.text
+    r = requests.get(api_url + '/users/'+str(user_id)+'/'+query)
     response = r.json()
-    update.message.reply_text(response['content'])
+
+    if 'content' in response:
+        update.message.reply_text(response['content'])
+        return
+
+    update.message.reply_text('Sorry, can you repeat that?  ')
+
+
+
 
 
 def balance(bot, update):
     """Return current balance of the user."""
-    r = requests.get(api_url + '/balance')
+    user_id = update.message.from_user.id
+    r = requests.get(api_url + '/users/'+str(user_id)+'/balance')
     response = r.json()
     update.message.reply_text('Your balance is %s' % response['balance'])
 
@@ -58,6 +78,15 @@ def error(bot, update, error):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, error)
 
+
+def create_user(payload):
+    r = requests.post(api_url + '/users/', data=payload)
+
+    if r.status_code == 500:
+        return 'An error occurred!'
+
+    response = r.json()
+    return response['message']
 
 def main():
 
