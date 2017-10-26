@@ -18,7 +18,7 @@ def get_intent_name(dialog_flow_response):
     return dialog_flow_response['result']['metadata']['intentName']
 
 
-def parse_message(session: Session, user_id: int, query: str):
+def parse_message(session: Session, data: http.RequestData):
     """
     Receives a message, sends to Dialogflow and register the message into database
     :param session: database session
@@ -28,14 +28,14 @@ def parse_message(session: Session, user_id: int, query: str):
     request = ai.text_request()
     request.lang = 'pt_BR'
     request.session_id = 1
-    request.query = query
+    request.query = data['query']
     response = request.getresponse()
 
     if response.status == HTTPStatus.UNAUTHORIZED or not env['DIALOG_FLOW_ACCESS_TOKEN']:
         return Response({'error': 'Unathorized'}, status=HTTPStatus.UNAUTHORIZED)
     elif response.status != HTTPStatus.OK:
         pending = PendingQuery()
-        pending.message = query
+        pending.message = data['query']
         pending.request_status = response.status
         pending.request_date = datetime.datetime.now()
         session.add(pending)
@@ -45,7 +45,7 @@ def parse_message(session: Session, user_id: int, query: str):
     intent = get_intent_name(dialog_flow_response)
 
     if intent == 'register_expense':
-        expense = register_expense(session, dialog_flow_response, user_id)
+        expense = register_expense(session, dialog_flow_response, data['user_id'])
         return Response({'content': 'Expense of %0.2f registered' % expense.value}, status=HTTPStatus.OK)
 
     return Response(dialog_flow_response['result'], status=HTTPStatus.OK)

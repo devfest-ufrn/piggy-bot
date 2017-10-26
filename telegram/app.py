@@ -51,9 +51,15 @@ def help(bot, update):
 
 def message(bot, update):
     """Parses the user message and reply."""
+    payload = {
+        'user_id': update.message.from_user.id,
+        'query':  update.message.text    
+    }
+
     user_id = update.message.from_user.id
     query =  update.message.text
-    r = requests.get(api_url + '/users/'+str(user_id)+'/'+query)
+    
+    r = requests.post(api_url + '/users/query', data=payload)
     response = r.json()
 
     if 'content' in response:
