@@ -7,7 +7,7 @@ user_routes = [
 	Route('/', 'POST', create_user),
 	Route('/', 'GET', list_users),
 	Route('/{user_id}', 'GET', list_by_id), 
-	Route('/{user_id}/{query}', 'GET', parse_message),
+	Route('/query', 'POST', parse_message),
     Route('/{id}/balance', 'GET', retrieve_balance),
     Route('/{id}/expenses', 'GET', list_expenses),
 ]
