@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, Date, Time
+from sqlalchemy import Column, Integer, String, Float, Date, Time, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -17,6 +18,9 @@ class Expense(Base):
     id = Column(Integer, primary_key=True)
     message = Column(String)
     value = Column(Float)
+    user_id = Column(Integer, ForeignKey('users.id'))
+
+    user = relationship('User', back_populates='expenses')
 
 
 class ExpenseCategory(Base):
@@ -24,3 +28,18 @@ class ExpenseCategory(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     description = Column(String)
+
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    username = Column(String)
+    first_name = Column(String)
+
+    expenses = relationship('Expense', back_populates='user')
+
+    def __repr__(self):
+        return  "<User(id='%s', username='%s', first_name='%s')>" % (
+                                self.id, self.username, self.first_name)
+
+        
