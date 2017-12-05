@@ -19,6 +19,7 @@ class Expense(Base):
     message = Column(String)
     value = Column(Float)
     user_id = Column(Integer, ForeignKey('users.id'))
+    category = Column(String)
 
     user = relationship('User', back_populates='expenses')
 

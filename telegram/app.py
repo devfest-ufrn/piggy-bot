@@ -21,7 +21,7 @@ if not api_url:
 
 def start(bot, update):
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
+    update.message.reply_text('Opa!')
     
     payload = {
         'id': update.message.from_user.id,
@@ -32,21 +32,21 @@ def start(bot, update):
     r = requests.get(api_url + '/users/' + str(payload['id']))
     
     if r.status_code == 404:
-        update.message.reply_text("Hummm... I don't know you")
-        update.message.reply_text('Just a minute, pls :)')
+        update.message.reply_text("Hummm... Não conheço você")
+        update.message.reply_text('Aguarde um pouco, pls :)')
         response = create_user(payload)
 
         update.message.reply_text(response)
         return
 
 
-    msg = 'Yeeeaaah, i remember you. How can i help you, ' + update.message.from_user.first_name + '?'
+    msg = 'Eaíiii, Eu lembro de você. Como posso te ajudar, ' + update.message.from_user.first_name + '?'
     update.message.reply_text(msg)
 
 
 def help(bot, update):
     """Send a message when the command /help is issued."""
-    update.message.reply_text('Help!')
+    update.message.reply_text('Ajuda!')
 
 
 def message(bot, update):
@@ -66,7 +66,7 @@ def message(bot, update):
         update.message.reply_text(response['content'])
         return
 
-    update.message.reply_text('Sorry, can you repeat that?  ')
+    update.message.reply_text('Não entendi, visse. Tenta com outras palavras. Agradecido')
 
 
 
@@ -77,7 +77,7 @@ def balance(bot, update):
     user_id = update.message.from_user.id
     r = requests.get(api_url + '/users/'+str(user_id)+'/balance')
     response = r.json()
-    update.message.reply_text('Your balance is %s' % response['balance'])
+    update.message.reply_text('O total de gastos acumulados é de R$ %s' % response['balance'])
 
 
 def error(bot, update, error):
@@ -89,7 +89,7 @@ def create_user(payload):
     r = requests.post(api_url + '/users/', data=payload)
 
     if r.status_code == 500:
-        return 'An error occurred!'
+        return 'Acho que deu um erro aqui... Mas bora'
 
     response = r.json()
     return response['message']

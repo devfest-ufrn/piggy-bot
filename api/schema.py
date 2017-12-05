@@ -9,9 +9,10 @@ class ExpenseSchema(typesystem.Object):
         'user_id': typesystem.Number
     }
 
-class UserSchema(typesystem.Object):	
-	properties = {
-		'id': typesystem.Integer,
-		'username':typesystem.String,
-		'first_name': typesystem.String
-	}	
+
+class UserSchema(typesystem.Object):
+    properties = {
+        'id': typesystem.Integer,
+        'username':typesystem.String,
+        'first_name': typesystem.String
+    }

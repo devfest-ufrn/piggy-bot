@@ -23,6 +23,7 @@ def parse_message(session: Session, data: http.RequestData):
     Receives a message, sends to Dialogflow and register the message into database
     :param session: database session
     :param message: the message sent by the user
+    :param data: request data
     :return: response message to user
     """
     request = ai.text_request()
@@ -39,14 +40,14 @@ def parse_message(session: Session, data: http.RequestData):
         pending.request_status = response.status
         pending.request_date = datetime.datetime.now()
         session.add(pending)
-        return Response({'error': 'Something went wrong while trying to communicate with DialogFlow. STATUS=%s' % response.status})
+        return Response({'error': 'Alguma coisa deu errado :( na comunicação com o DialogFlow. Tente novamente. STATUS=%s' % response.status})
 
     dialog_flow_response = json.loads(response.read().decode('utf-8'))
     intent = get_intent_name(dialog_flow_response)
 
     if intent == 'register_expense':
         expense = register_expense(session, dialog_flow_response, data['user_id'])
-        return Response({'content': 'Expense of %0.2f registered' % expense.value}, status=HTTPStatus.OK)
+        return Response({'content': 'Gasto de %0.2f registrado como %s' % (expense.value, expense.category)}, status=HTTPStatus.OK)
 
     return Response(dialog_flow_response['result'], status=HTTPStatus.OK)
 
@@ -81,6 +82,7 @@ def register_expense(session: Session, response, user_id):
     expense = Expense()
     expense.message = response['result']['resolvedQuery']
     expense.value = float(response['result']['parameters']['value'])
+    expense.category = response['result']['parameters']['category_expense'] or 'Indefinido'
     expense.user_id = int(user_id)
 
     session.add(expense)
@@ -116,6 +118,7 @@ def list_by_id(session: Session, user_id: int):
 
     return [UserSchema(user) for user in queryset]
 
+
 def create_user(session: Session, request: http.RequestData ):
     """
     Function responsible to register a user
@@ -131,9 +134,9 @@ def create_user(session: Session, request: http.RequestData ):
 
     session.add(user)
     session.flush()
-    
 
     return Response({ 'message': 'User added with success'})
+
 
 
 
